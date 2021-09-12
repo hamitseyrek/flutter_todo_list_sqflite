@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_todo_list_sqflite/models/category.dart';
+import 'package:flutter_todo_list_sqflite/models/note.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:io';
@@ -60,10 +62,56 @@ var databasesPath = await getDatabasesPath();
   
 }
 
+/* CRUD for Categories Table */
 getCategories() async {
   var db = await _getDatabase();
-  var result = await db.query('category');
-  print(result);
+  var result = await db.query('categories');
+  return result;
 }
+
+Future<int> categoryCreate(Category category) async{
+  var db = await _getDatabase();
+  var id = await db.insert('categories', category.toMap());
+  return id;
+}
+
+Future<int> categoryUpdate(Category category) async{
+  var db = await _getDatabase();
+  var id = await db.update('categories', category.toMap(), where: 'id = ?', whereArgs: [category.id]);
+  return id;
+}
+
+Future<int> categoryDelete(int catId) async{
+  var db = await _getDatabase();
+  var result = await db.delete('categories', where: 'id = ?', whereArgs: [catId]);
+  return result;
+}
+/* Categories finish */
+
+/* CRUD for Notes Table */
+getNotes() async {
+  var db = await _getDatabase();
+  var result = await db.query('notes', orderBy: 'id DESC');
+  return result;
+}
+
+Future<int> noteCreate(Note note) async{
+  var db = await _getDatabase();
+  var id = await db.insert('notes', note.toMap());
+  return id;
+}
+
+Future<int> noteUpdate(Note note) async{
+  var db = await _getDatabase();
+  var id = await db.update('notes', note.toMap(), where: 'id = ?', whereArgs: [note.id]);
+  return id;
+}
+
+Future<int> noteDelete(int noteId) async{
+  var db = await _getDatabase();
+  var result = await db.delete('notes', where: 'id = ?', whereArgs: [noteId]);
+  return result;
+}
+/* Notes finish */
 
 }
