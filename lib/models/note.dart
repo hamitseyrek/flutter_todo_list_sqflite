@@ -10,8 +10,8 @@ class Note {
   Note(this.categoryId, this.title, this.description, this.date,
       this.priority); //verileri yazarken
 
-  Note.withID(this.id, this.categoryId, this.title, this.description,
-      this.date, this.priority); //verileri okurken
+  Note.withID(this.id, this.categoryId, this.title, this.description, this.date,
+      this.priority); //verileri okurken
 
   Map<String, dynamic> toMap() {
     var map = Map<String, dynamic>();
