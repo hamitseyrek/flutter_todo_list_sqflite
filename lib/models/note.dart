@@ -28,7 +28,7 @@ class Note {
   Note.fromMap(Map<String, dynamic> map) {
     this.id = map['id'];
     this.categoryId = map['categoryId'];
-    this.categoryName = map['categoryName'];
+    this.categoryName = map['name'];
     this.title = map['title'];
     this.description = map['description'];
     this.date = map['date'];
@@ -37,6 +37,6 @@ class Note {
 
   @override
   String toString() {
-    return 'Not{id: $id, kategoriID: $categoryId, notBaslik: $title, notIcerik: $description, notTarih: $date, notOncelik: $priority}';
+    return 'Not{id: $id, CategoryId: $categoryId, Title: $title, Content: $description, Date: $date, Category Name: $categoryName, Priority: $priority}';
   }
 }

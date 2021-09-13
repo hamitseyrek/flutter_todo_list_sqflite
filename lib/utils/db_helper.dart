@@ -87,10 +87,21 @@ class DbHelper {
 /* Categories finish */
 
 /* CRUD for Notes Table */
-  getNotes() async {
+  Future<List<Map<String, dynamic>>> getNotesAsMap() async {
     var db = await _getDatabase();
-    var result = await db.query('notes', orderBy: 'id DESC');
+    var result = await db.rawQuery(
+        'select * from notes inner join categories on categories.id = notes.categoryId order by id DESC');
+    //query('notes', orderBy: 'id DESC');
     return result;
+  }
+
+  Future<List<Note>> getNotesAsList() async {
+    var noteMapList = await getNotesAsMap();
+    List<Note> noteList = [];
+    for (Map<String, dynamic> map in noteMapList) {
+      noteList.add(Note.fromMap(map));
+    }
+    return noteList;
   }
 
   Future<int> noteCreate(Note note) async {
@@ -111,6 +122,84 @@ class DbHelper {
     var result = await db.delete('notes', where: 'id = ?', whereArgs: [noteId]);
     return result;
   }
+
+  String dateFormat(DateTime dt) {
+    DateTime today = new DateTime.now();
+    Duration oneDay = new Duration(days: 1);
+    Duration twoDay = new Duration(days: 2);
+    Duration oneWeek = new Duration(days: 7);
+    String? month;
+
+    switch (dt.month) {
+      case 1:
+        month = "January";
+        break;
+      case 2:
+        month = "February";
+        break;
+      case 3:
+        month = "March";
+        break;
+      case 4:
+        month = "April";
+        break;
+      case 5:
+        month = "May";
+        break;
+      case 6:
+        month = "June";
+        break;
+      case 7:
+        month = "Julay";
+        break;
+      case 8:
+        month = "August";
+        break;
+      case 9:
+        month = "September";
+        break;
+      case 10:
+        month = "October";
+        break;
+      case 11:
+        month = "November";
+        break;
+      case 12:
+        month = "December";
+        break;
+    }
+
+    Duration difference = today.difference(dt);
+
+    if (difference.compareTo(oneDay) < 1) {
+      return "Today";
+    } else if (difference.compareTo(twoDay) < 1) {
+      return "Yesterday";
+    } else if (difference.compareTo(oneWeek) < 1) {
+      switch (dt.weekday) {
+        case 1:
+          return "Monday";
+        case 2:
+          return "Sunday";
+        case 3:
+          return "Wednesday";
+        case 4:
+          return "Thursday";
+        case 5:
+          return "Friday";
+        case 6:
+          return "Saturday";
+        case 7:
+          return "Sunday";
+      }
+    } else if (dt.year == today.year) {
+      return '${dt.day} $month';
+    } else {
+      return '${dt.day} $month ${dt.year}';
+    }
+    return "";
+  }
+
 /* Notes finish */
 
 }

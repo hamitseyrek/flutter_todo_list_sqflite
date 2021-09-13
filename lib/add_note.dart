@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_list_sqflite/models/category.dart';
+import 'package:flutter_todo_list_sqflite/models/note.dart';
 import 'package:flutter_todo_list_sqflite/utils/db_helper.dart';
 
 class AddNote extends StatefulWidget {
@@ -15,6 +16,9 @@ class _AddNoteState extends State<AddNote> {
   late DbHelper? dbHelper;
   int onSelectCatId = 1;
   Category? selectedCat;
+  int selectedPri = 0;
+  String? title, content;
+  static var _priority = ['Low', 'Middle', 'High'];
 
   @override
   void initState() {
@@ -34,6 +38,7 @@ class _AddNoteState extends State<AddNote> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -43,7 +48,178 @@ class _AddNoteState extends State<AddNote> {
           ],
         ),
       ),
-      body: Form(
+      body: _allCategories!.length <= 0
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Container(
+              child: Form(
+                key: _myFormKey,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            'Category:',
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<Category>(
+                              value: selectedCat,
+                              items: getCategories(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedCat = value!;
+                                  onSelectCatId = value.id!;
+                                });
+                              },
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Theme.of(context).primaryColor,
+                                  width: 1),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          margin: EdgeInsets.all(8),
+                          padding: EdgeInsets.only(left: 30, right: 15),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value!.length < 3) {
+                            return 'Title value min length mus be 3';
+                          }
+                        },
+                        onSaved: (value) {
+                          title = value!;
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Note Title',
+                          labelText: 'Title',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Note Content',
+                          labelText: 'Content',
+                          border: OutlineInputBorder(),
+                        ),
+                        onSaved: (value) {
+                          content = value!;
+                        },
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            'Priority:',
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              value: selectedPri,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedPri = value!;
+                                });
+                              },
+                              items: _priority.map((oncelik) {
+                                return DropdownMenuItem<int>(
+                                  child: Text(
+                                    oncelik,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  value: _priority.indexOf(oncelik),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Theme.of(context).primaryColor,
+                                  width: 1),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          margin: EdgeInsets.all(8),
+                          padding: EdgeInsets.only(left: 30, right: 15),
+                        ),
+                      ],
+                    ),
+                    ButtonBar(
+                      alignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text('Cancel'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                Colors.orange.shade400),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_myFormKey.currentState!.validate()) {
+                              _myFormKey.currentState!.save();
+                              var nowDate = DateTime.now();
+                              dbHelper!
+                                  .noteCreate(Note(selectedCat!.id, title,
+                                      content, nowDate.toString(), selectedPri))
+                                  .then((value) {
+                                if (value != 0) {
+                                  Navigator.pop(context);
+                                }
+                              });
+                            }
+                          },
+                          child: Text('Save'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                Colors.green.shade400),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  List<DropdownMenuItem<Category>> getCategories() {
+    return _allCategories!
+        .map((category) => DropdownMenuItem<Category>(
+              value: category,
+              child: Text(category.name.toString()),
+            ))
+        .toList();
+  }
+}
+
+/**
+ * Form(
           key: _myFormKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,15 +249,4 @@ class _AddNoteState extends State<AddNote> {
               ),
             ],
           )),
-    );
-  }
-
-  List<DropdownMenuItem<Category>> getCategories() {
-    return _allCategories!
-        .map((category) => DropdownMenuItem<Category>(
-              value: category,
-              child: Text(category.name.toString()),
-            ))
-        .toList();
-  }
-}
+ */

@@ -1,10 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_todo_list_sqflite/add_note.dart';
 import 'package:flutter_todo_list_sqflite/models/category.dart';
+import 'package:flutter_todo_list_sqflite/models/note.dart';
 import 'package:flutter_todo_list_sqflite/utils/db_helper.dart';
 
-class HomePage extends StatelessWidget {
-  final DbHelper dbHelper = DbHelper();
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late DbHelper dbHelper;
+  late List<Note>? _allNotes;
+
+  @override
+  void initState() {
+    super.initState();
+    _allNotes = [];
+    dbHelper = DbHelper();
+  }
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,11 +47,97 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
-        child: Center(
-          child: Text('data'),
-        ),
-      ),
+      body: FutureBuilder(
+          future: dbHelper.getNotesAsList(),
+          builder: (context, AsyncSnapshot<List<Note>> snapShot) {
+            if (snapShot.connectionState == ConnectionState.done) {
+              _allNotes = snapShot.data;
+              sleep((Duration(milliseconds: 500)));
+
+              return ListView.builder(
+                itemBuilder: (context, index) {
+                  return ExpansionTile(
+                    title: Text(_allNotes![index].title!.toString()),
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(4),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Category:',
+                                    style: TextStyle(color: Colors.redAccent),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    _allNotes![index].categoryName.toString(),
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Created At:',
+                                    style: TextStyle(color: Colors.redAccent),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    dbHelper.dateFormat(DateTime.parse(
+                                        _allNotes![index].date.toString())),
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Content: ',
+                                    style: TextStyle(
+                                        color: Colors.redAccent),
+                                  ),
+                                  Text(
+                                      _allNotes![index].description.toString()),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  );
+                },
+                itemCount: _allNotes!.length,
+              );
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }),
+      /*ListView.builder(
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_allNotes![index].title!.toString()),
+                );
+              },
+              itemCount: _allNotes!.length,
+            ),*/
     );
   }
 
