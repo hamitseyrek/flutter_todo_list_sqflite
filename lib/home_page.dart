@@ -38,8 +38,11 @@ class _HomePageState extends State<HomePage> {
                   color: Colors.green,
                 ),
                 title: Text('Categories'),
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Categories())),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Categories()));
+                },
               ))
             ];
           })
@@ -290,6 +293,14 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         });
+  }
+
+  _updateList() {
+    _allNotes = [];
+    dbHelper.getNotesAsList().then((allnote) {
+      _allNotes = allnote;
+    });
+    setState(() {});
   }
 
   _addNote(BuildContext context) {

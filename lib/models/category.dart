@@ -19,6 +19,6 @@ class Category {
 
   @override
   String toString() {
-    return 'Kategori {kategoriId: $id, kategoriBaslik: $name}';
+    return 'Category {Id: $id, Name: $name}';
   }
 }
