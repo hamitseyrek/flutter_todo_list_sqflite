@@ -90,7 +90,7 @@ class DbHelper {
   Future<List<Map<String, dynamic>>> getNotesAsMap() async {
     var db = await _getDatabase();
     var result = await db.rawQuery(
-        'select * from notes inner join categories on categories.id = notes.categoryId order by id DESC');
+        'select title,description,date,priority,notes.id as id,categories.name as categoryName,categoryId from notes inner join categories on categories.id = notes.categoryId order by notes.id DESC');
     //query('notes', orderBy: 'id DESC');
     return result;
   }

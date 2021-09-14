@@ -4,7 +4,11 @@ import 'package:flutter_todo_list_sqflite/models/note.dart';
 import 'package:flutter_todo_list_sqflite/utils/db_helper.dart';
 
 class AddNote extends StatefulWidget {
-  const AddNote({Key? key}) : super(key: key);
+  final String title;
+  Note? editNote;
+  AddNote({required this.title, Key? key}) : super(key: key);
+  AddNote.update({required this.editNote, required this.title, Key? key})
+      : super(key: key);
 
   @override
   _AddNoteState createState() => _AddNoteState();
@@ -30,8 +34,16 @@ class _AddNoteState extends State<AddNote> {
       for (Map<String, dynamic> map in categoryMapList) {
         _allCategories!.add(Category.fromMap(map));
       }
-      selectedCat = _allCategories![0];
-      setState(() {});
+
+      setState(() {
+        if (widget.editNote != null) {
+          selectedCat = _allCategories![widget.editNote!.categoryId!];
+          selectedPri = widget.editNote!.priority!;
+          onSelectCatId = _allCategories![widget.editNote!.categoryId!].id!;
+        } else {
+          selectedCat = _allCategories![0];
+        }
+      });
     });
   }
 
@@ -44,7 +56,7 @@ class _AddNoteState extends State<AddNote> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add),
-            Text('New Note'),
+            Text(widget.title),
           ],
         ),
       ),
@@ -94,6 +106,9 @@ class _AddNoteState extends State<AddNote> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
+                        initialValue: widget.editNote != null
+                            ? widget.editNote!.title
+                            : "",
                         validator: (value) {
                           if (value!.length < 3) {
                             return 'Title value min length mus be 3';
@@ -112,6 +127,9 @@ class _AddNoteState extends State<AddNote> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
+                        initialValue: widget.editNote != null
+                            ? widget.editNote!.description
+                            : "",
                         maxLines: 4,
                         decoration: InputDecoration(
                           hintText: 'Note Content',
@@ -183,17 +201,36 @@ class _AddNoteState extends State<AddNote> {
                             if (_myFormKey.currentState!.validate()) {
                               _myFormKey.currentState!.save();
                               var nowDate = DateTime.now();
-                              dbHelper!
-                                  .noteCreate(Note(selectedCat!.id, title,
-                                      content, nowDate.toString(), selectedPri))
-                                  .then((value) {
-                                if (value != 0) {
-                                  Navigator.pop(context);
-                                }
-                              });
+                              widget.editNote != null
+                                  ? dbHelper!
+                                      .noteUpdate(Note.withID(
+                                          widget.editNote!.id,
+                                          selectedCat!.id,
+                                          title,
+                                          content,
+                                          nowDate.toString(),
+                                          selectedPri))
+                                      .then((value) {
+                                      if (value != 0) {
+                                        Navigator.pop(context);
+                                      }
+                                    })
+                                  : dbHelper!
+                                      .noteCreate(Note(
+                                          selectedCat!.id,
+                                          title,
+                                          content,
+                                          nowDate.toString(),
+                                          selectedPri))
+                                      .then((value) {
+                                      if (value != 0) {
+                                        Navigator.pop(context);
+                                      }
+                                    });
                             }
                           },
-                          child: Text('Save'),
+                          child:
+                              Text(widget.editNote != null ? 'Update' : "Save"),
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all(
                                 Colors.green.shade400),

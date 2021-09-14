@@ -28,7 +28,7 @@ class Note {
   Note.fromMap(Map<String, dynamic> map) {
     this.id = map['id'];
     this.categoryId = map['categoryId'];
-    this.categoryName = map['name'];
+    this.categoryName = map['categoryName'];
     this.title = map['title'];
     this.description = map['description'];
     this.date = map['date'];
